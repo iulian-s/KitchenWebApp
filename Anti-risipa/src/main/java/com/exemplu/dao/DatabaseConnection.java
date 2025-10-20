@@ -7,15 +7,26 @@ import java.util.List;
 public class DatabaseConnection {
 
     public static Connection getConnection() throws SQLException {
-        String jdbcURL = "jdbc:mysql://localhost:3306/anti_risipa";
-        String dbUsername = "root";  
-        String dbPassword = "Parola1234";  
+        // Read environment variables (with fallback defaults)
+        String dbHost = System.getenv("DB_HOST");
+        String dbPort = System.getenv("DB_PORT");
+        String dbName = System.getenv("DB_NAME");
+        String dbUser = System.getenv("DB_USER");
+        String dbPassword = System.getenv("DB_PASSWORD");
+
+        if (dbHost == null || dbPort == null || dbName == null || dbUser == null || dbPassword == null) {
+            throw new RuntimeException("Missing one or more required DB environment variables.");
+        }
+
+        String jdbcURL = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
+                                       dbHost, dbPort, dbName);
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Eroare la încărcarea driverului MySQL", e);
+            throw new RuntimeException("Error loading MySQL driver", e);
         }
-    
-        return DriverManager.getConnection(jdbcURL, dbUsername, dbPassword);
+
+        return DriverManager.getConnection(jdbcURL, dbUser, dbPassword);
     }
 }
